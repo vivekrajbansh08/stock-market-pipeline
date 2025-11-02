@@ -55,19 +55,40 @@ selected_stock = st.sidebar.selectbox(
 # Date range selection
 date_range = st.sidebar.selectbox(
     "Date Range",
-    options=["1 Week", "1 Month", "3 Months", "6 Months", "1 Year"],
+    options=["1m","5m","15m","1h","4h","1d","1 Week", "1 Month", "3 Months", "6 Months", "1 Year"],
     index=2
 )
 
 # Map date range to days
 range_mapping = {
+    "1m": "1m",
+    "5m": "5m",
+    "15m": "15m",
+    "1h": "60m",
+    "4h": "240m",
+    "1d": "1d",
     "1 Week": 7,
     "1 Month": 30,
     "3 Months": 90,
     "6 Months": 180,
     "1 Year": 365
 }
+limit_mapping = {
+    "1m": 500,
+    "5m": 500,
+    "15m": 500,
+    "1h": 500,
+    "4h": 500,
+    "1d": 500,
+    "1 Week": 700,
+    "1 Month": 3000,
+    "3 Months": 9000,
+    "6 Months": 18000,
+    "1 Year": 36500
+}
 days = range_mapping[date_range]
+selected_limit = limit_mapping[date_range]
+
 
 st.sidebar.markdown("---")
 st.sidebar.info(f"Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -78,8 +99,8 @@ st.title(f"📈 {selected_stock} - Stock Analysis Dashboard")
 # Fetch data
 @st.cache_data(ttl=300)
 def load_stock_data(symbol, days):
-    price_df = db.get_latest_stock_data(symbol, days)
-    indicators_df = db.get_latest_indicators(symbol, days)
+    price_df = db.get_latest_stock_data(symbol, limit=selected_limit)
+    indicators_df = db.get_latest_indicators(symbol, limit=selected_limit)
     
     if price_df.empty or indicators_df.empty:
         return pd.DataFrame()

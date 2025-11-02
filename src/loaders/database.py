@@ -249,27 +249,27 @@ class DatabaseManager:
             self.logger.error(f"Error inserting news sentiment: {str(e)}")
             raise
     
-    def get_latest_stock_data(self, symbol: str, days: int = 30) -> pd.DataFrame:
+    def get_latest_stock_data(self, symbol: str, limit: int = 100) -> pd.DataFrame:
         """Retrieve latest stock data for a symbol"""
         query = f"""
-            SELECT * FROM stock_prices 
-            WHERE symbol = '{symbol}' 
-            ORDER BY date DESC 
-            LIMIT {days}
+        SELECT * FROM stock_prices 
+        WHERE symbol = '{symbol}' 
+        ORDER BY date DESC 
+        LIMIT {limit}
         """
         try:
             return pd.read_sql(query, self.engine)
         except Exception as e:
             self.logger.error(f"Error retrieving stock data: {str(e)}")
             return pd.DataFrame()
-    
-    def get_latest_indicators(self, symbol: str, days: int = 30) -> pd.DataFrame:
+
+    def get_latest_indicators(self, symbol: str, limit: int = 100) -> pd.DataFrame:
         """Retrieve latest technical indicators for a symbol"""
         query = f"""
             SELECT * FROM technical_indicators 
             WHERE symbol = '{symbol}' 
             ORDER BY date DESC 
-            LIMIT {days}
+            LIMIT {limit}
         """
         try:
             return pd.read_sql(query, self.engine)
