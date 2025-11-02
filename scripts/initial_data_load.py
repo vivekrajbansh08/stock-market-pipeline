@@ -44,50 +44,56 @@ def initial_load():
     db = DatabaseManager()
     print("✓ Components initialized\n")
     
-    # Get stocks to process
-    symbols = settings.NIFTY_50_STOCKS
-    print(f"📊 Processing {len(symbols)} stocks: {', '.join(symbols[:5])}...\n")
-    
-    # =================================================================
-    # STEP 1: Extract and Load Stock Price Data
-    # =================================================================
-    print("=" * 60)
-    print("STEP 1: Extracting Historical Stock Prices")
-    print("=" * 60)
-    
-    all_price_data = []
-    successful_extractions = 0
-    
-    for i, symbol in enumerate(symbols, 1):
-        try:
-            print(f"[{i}/{len(symbols)}] Fetching {symbol}...", end=" ")
-            
-            # Fetch 6 months of daily data
-            df = extractor.get_stock_data(symbol, period="6mo", interval="1d")
-            
-            if df is not None and not df.empty:
-                all_price_data.append(df)
-                successful_extractions += 1
-                print(f"✓ ({len(df)} records)")
-            else:
-                print("✗ (No data)")
-            
-            # Rate limiting - be nice to Yahoo Finance
-            time.sleep(0.5)
-            
-        except Exception as e:
-            print(f"✗ Error: {str(e)}")
-            continue
-    
-    print(f"\n✓ Successfully extracted data for {successful_extractions}/{len(symbols)} stocks")
-    
-    # Combine and save all price data
-    if all_price_data:
-        import pandas as pd
-        combined_df = pd.concat(all_price_data, ignore_index=True)
-        print(f"💾 Saving {len(combined_df)} price records to database...")
-        db.insert_stock_prices(combined_df)
-        print("✓ Price data saved\n")
+# Get stocks to process
+# Get stocks to process
+symbols = settings.NIFTY_50_STOCKS
+
+# Ensure ^NSEI (Nifty 50 Index) is always included
+if "^NSEI" not in symbols:
+    symbols = ["^NSEI"] + symbols
+
+print(f"📊 Processing {len(symbols)} symbols (including NIFTY 50 index)...\n")
+
+# =================================================================
+# STEP 1: Extract and Load Stock Price Data
+# =================================================================
+print("=" * 60)
+print("STEP 1: Extracting Historical Stock Prices")
+print("=" * 60)
+
+all_price_data = []
+successful_extractions = 0
+
+for i, symbol in enumerate(symbols, 1):
+    try:
+        print(f"[{i}/{len(symbols)}] Fetching {symbol}...", end=" ")
+        
+        # Fetch 6 months of daily data
+        df = extractor.get_stock_data(symbol, period="6mo", interval="1d")
+        
+        if df is not None and not df.empty:
+            all_price_data.append(df)
+            successful_extractions += 1
+            print(f"✓ ({len(df)} records)")
+        else:
+            print("✗ (No data)")
+        
+        # Rate limiting - be nice to Yahoo Finance
+        time.sleep(0.5)
+        
+    except Exception as e:
+        print(f"✗ Error: {str(e)}")
+        continue
+
+print(f"\n✓ Successfully extracted data for {successful_extractions}/{len(symbols)} stocks")
+
+# Combine and save all price data
+if all_price_data:
+    import pandas as pd
+    combined_df = pd.concat(all_price_data, ignore_index=True)
+    print(f"💾 Saving {len(combined_df)} price records to database...")
+    db.insert_stock_prices(combined_df)
+    print("✓ Price data saved\n")
     
     # =================================================================
     # STEP 2: Calculate and Load Technical Indicators
